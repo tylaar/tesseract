@@ -18,6 +18,7 @@ import io.netty.handler.codec.string.StringEncoder;
 import net.oscartech.tesseract.node.exception.NodeProcessException;
 import net.oscartech.tesseract.node.rpc.aop.RpcMethod;
 import net.oscartech.tesseract.node.rpc.aop.RpcService;
+import net.oscartech.tesseract.node.util.JsonObjectDecoder;
 import net.oscartech.tesseract.node.util.SequenceGenerator;
 
 import java.io.IOException;
@@ -91,7 +92,7 @@ public class NodeService {
                         ch.pipeline().addLast(new NodeServerHandler(proposalBroker));
                         ch.pipeline().addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
 
-                        ch.pipeline().addLast(new StringDecoder());
+                        ch.pipeline().addLast(new JsonObjectDecoder());
                         ch.pipeline().addLast(new StringEncoder());
                     }
                 })
