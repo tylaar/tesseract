@@ -3,6 +3,7 @@ package net.oscartech.tesseract.common.fiber;
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -44,31 +45,45 @@ public class FiberExecutor extends AbstractExecutorService {
 
     @Override
     public void shutdown() {
-
+        this.runner.publish(new Stopper());
     }
 
+    /**
+     * We have to filter out the stopper poison stuff from the awaiting queue.
+     * @return
+     */
     @Override
     public List<Runnable> shutdownNow() {
-        return null;
+        List<Runnable> awaitingExceptions = this.runner.haltNow();
+
+        final Stopper stopper = new Stopper();
+        while(awaitingExceptions.remove(stopper)) {
+            Thread.currentThread().yield();
+        }
+        return awaitingExceptions;
     }
 
     @Override
     public boolean isShutdown() {
-        return false;
+        return this.runner.isHalt();
     }
 
     @Override
     public boolean isTerminated() {
-        return false;
+        return this.runner.isTerminated();
     }
 
     @Override
     public boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
-        return false;
+        return awaitTermination(timeout, unit);
     }
 
     @Override
     public void execute(final Runnable command) {
-
+        try {
+            this.runner.publish(command);
+        } catch (IllegalStateException e) {
+            throw new RejectedExecutionException("rejected command as the runner has already been halted.");
+        }
     }
 }
