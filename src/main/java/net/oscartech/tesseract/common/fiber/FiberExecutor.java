@@ -11,7 +11,17 @@ import java.util.concurrent.TimeUnit;
  */
 public class FiberExecutor extends AbstractExecutorService {
 
-    private Runner runner;
+    private final Runner runner;
+
+    public FiberExecutor(final Executor executor) {
+        this.runner = new Runner(executor);
+    }
+
+    public FiberExecutor(final Executor executor, final int batchSize) {
+        this.runner = new Runner(executor, batchSize);
+    }
+
+    public
 
     static class Runner extends FiberAdvertiser<Runnable> {
 
