@@ -1,6 +1,5 @@
 package net.oscartech.tesseract.common.concurrent;
 
-import org.omg.PortableServer.THREAD_POLICY_ID;
 
 import java.util.ArrayList;
 import java.util.HashSet;

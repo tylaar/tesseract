@@ -34,7 +34,7 @@ public abstract class Fiber {
     private CountDownLatch terminator = new CountDownLatch(1);
 
     //private AtomicInteger ACTIVE_CAS = new AtomicInteger(IDLE);
-    private static final AtomicIntegerFieldUpdater<Fiber> ACTIVE_CAS = AtomicIntegerFieldUpdater.newUpdater(Fiber.class, "currentState");
+    private static final AtomicIntegerFieldUpdater<Fiber> ACTIVE_CAS = AtomicIntegerFieldUpdater.newUpdater(Fiber.class, "isActive");
     private static final AtomicReferenceFieldUpdater<Fiber, State> STATE_CAS = AtomicReferenceFieldUpdater.newUpdater(Fiber.class, State.class, "state");
 
     private final Executor executor;
