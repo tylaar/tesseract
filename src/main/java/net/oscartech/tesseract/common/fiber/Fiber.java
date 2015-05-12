@@ -95,7 +95,6 @@ public abstract class Fiber {
             final State currentState = state;
             if (currentState == State.HALT) {
                 halt();
-                return;
             } else if (currentState == State.RUNNING && isSignaled()) {
                 ensureRunning();
             }
