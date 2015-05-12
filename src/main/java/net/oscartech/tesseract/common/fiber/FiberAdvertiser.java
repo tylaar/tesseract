@@ -64,6 +64,7 @@ public abstract class FiberAdvertiser<T> extends Fiber implements Advertiser<T> 
         }
         queue.add(element);
         signal();
-        if (isHalt() || queue.remove(element));
+        if (isHalt())
+            queue.remove(element);
     }
 }

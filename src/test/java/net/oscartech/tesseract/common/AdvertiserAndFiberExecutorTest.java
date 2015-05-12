@@ -35,6 +35,7 @@ public class AdvertiserAndFiberExecutorTest {
         final Runnable decrementor = new Runnable() {
             @Override
             public void run() {
+                System.out.println("yes");
                 latch.countDown();
             }
         };
