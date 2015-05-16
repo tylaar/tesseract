@@ -4,6 +4,7 @@ import io.netty.channel.Channel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -14,11 +15,12 @@ public class NodePeerTopology {
     private NodeAddress localAddress;
     private List<Channel> peerHostChannels = new ArrayList<>();
     private AtomicInteger peerNumber = new AtomicInteger(0);
-    private AtomicInteger readyNodeNumber = new AtomicInteger(0);
+    private CountDownLatch ready = null;
 
     public NodePeerTopology(final List<NodeAddress> networkTopology, final NodeAddress localAddress) {
         this.networkTopology = excludeSelf(networkTopology, localAddress);
         this.localAddress = localAddress;
+        ready = new CountDownLatch(this.networkTopology.size());
     }
 
     private List<NodeAddress> excludeSelf(final List<NodeAddress> networkTopology, final NodeAddress localAddress) {
@@ -36,8 +38,9 @@ public class NodePeerTopology {
         return networkTopology;
     }
 
-    public boolean isNetworkInitialized() {
-        return peerNumber.get() == readyNodeNumber.get();
+    public void awaitForNetworkToBeInitialized() throws InterruptedException {
+        if (ready.getCount() != 0)
+            this.ready.await();
     }
 
     public List<Channel> getPeerHostChannels() {
@@ -57,6 +60,7 @@ public class NodePeerTopology {
     }
 
     public void increaseReadyPeerNumber() {
-        this.readyNodeNumber.getAndIncrement();
+        System.out.println("counting down.");
+        this.ready.countDown();
     }
 }

@@ -60,11 +60,9 @@ class NodeProposalBroker {
 
     private void sendProposal(NodeProposal nodeProposal) {
         System.out.println("this is broker: " + this.hashCode() + " trying to send proposal.");
-        if (!peerTopology.isNetworkInitialized()) {
-            System.out.println("not ready for proposal");
-            return;
-        }
+
         try {
+            peerTopology.awaitForNetworkToBeInitialized();
             for (Channel channel : peerTopology.getPeerHostChannels()) {
                 if (channel.isWritable()) {
                     System.out.println("writable");
@@ -75,6 +73,8 @@ class NodeProposalBroker {
             }
         } catch (IOException e) {
             throw new NodeProcessException("during proposal marshalling, exception happened:", e);
+        } catch (InterruptedException e) {
+            throw new NodeProcessException("node initialization procedure interrupted.");
         }
     }
 

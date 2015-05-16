@@ -8,7 +8,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
@@ -36,7 +35,7 @@ public class NodeServiceTest {
         proposal.setProposalId(NodeServiceFactory.getSequenceGenerator().generateSequence());
         proposal.setType(0);
         proposal.setNanoDuration(System.nanoTime());
-        Thread.sleep(2000);
+        //Thread.sleep(2000);
         service.sendMasterProposal();
 
         while(true) {
