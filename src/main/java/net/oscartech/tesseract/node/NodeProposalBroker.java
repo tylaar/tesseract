@@ -10,8 +10,9 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
-* Created by tylaar on 15/4/29.
-*/
+ * A broker shall be responsible for tmux proposal.
+ * Created by tylaar on 15/4/29.
+ */
 class NodeProposalBroker {
 
     private Node node;
@@ -29,6 +30,11 @@ class NodeProposalBroker {
         this.verbConstructor = verbConstructor;
     }
 
+    /**
+     * Tmuxing all the proposal to specific handler.
+     * @param proposal
+     * @return
+     */
     public NodeProposal handleProposal(NodeProposal proposal) {
         if (proposal.getType() == NodeProposalType.MASTER_SELECTION.getCode()) {
             return handleMasterSelection(proposal);
@@ -50,6 +56,7 @@ class NodeProposalBroker {
             reply.setNanoDuration(System.nanoTime());
             long replyProposalId = node.tryToAcceptNewProposal("0", proposal.getProposalId());
             reply.setProposalId(replyProposalId);
+            reply.setType(NodeProposalType.ACK.getCode());
             return reply;
         }
         return null;
@@ -66,8 +73,21 @@ class NodeProposalBroker {
                 if (channel.isWritable()) {
                     System.out.println("writable");
                 }
-                channel.writeAndFlush(MarshallUtils.serializeToString(nodeProposal));
-                System.out.println("delivering");
+                String proposalWords = MarshallUtils.serializeToString(nodeProposal);
+                channel.writeAndFlush(proposalWords);
+                System.out.println("delivering" + proposalWords);
+            }
+        } catch (IOException e) {
+            throw new NodeProcessException("during proposal marshalling, exception happened:", e);
+        }
+    }
+
+    public void replyProposal(Channel targetChannel, NodeProposal proposalReply) {
+        System.out.println("this is broker: " + this.hashCode() + " trying to reply proposal.");
+        try {
+            if (targetChannel.isWritable()) {
+                System.out.println("broker is going to reply to the writable channel");
+                targetChannel.writeAndFlush(MarshallUtils.serializeToString(proposalReply));
             }
         } catch (IOException e) {
             throw new NodeProcessException("during proposal marshalling, exception happened:", e);
@@ -79,4 +99,10 @@ class NodeProposalBroker {
         sendProposal(proposal);
     }
 
+    public void handleAck(final NodeProposal reply) {
+        if (reply.getType() != NodeProposalType.ACK.getCode()) {
+            throw new RuntimeException("if this is not an ack, I shall not be received.");
+        }
+
+    }
 }

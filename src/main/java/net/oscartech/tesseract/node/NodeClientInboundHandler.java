@@ -4,12 +4,24 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.CharsetUtil;
+import net.oscartech.tesseract.node.pojo.NodeProposal;
+import net.oscartech.tesseract.node.util.MarshallUtils;
+
+import java.io.IOException;
 
 /**
  * Created by tylaar on 15/4/27.
  */
 @ChannelHandler.Sharable
 public class NodeClientInboundHandler extends ChannelInboundHandlerAdapter {
+
+    private NodeProposalBroker broker;
+
+    public NodeClientInboundHandler(final NodeProposalBroker broker) {
+        this.broker = broker;
+    }
+
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         System.out.println("active read");
@@ -20,10 +32,16 @@ public class NodeClientInboundHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         ByteBuf m = (ByteBuf) msg;
         try {
-            System.out.println("message read: " + m.toString());
-            ctx.close();
-        } finally {
-            m.release();
+            NodeProposal reply = MarshallUtils.fromStringToProposal(m.toString(CharsetUtil.UTF_8));
+            System.out.println("CLIENT read reply" + reply.getProposalId() + " and type: " + reply.getType());
+            /**
+             * One thing that we shall always bear in mind is that, proposal broker
+             * theoretically shall be state less. The code is shared by different
+             * thread.
+             */
+            broker.handleAck(reply);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
