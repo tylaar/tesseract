@@ -52,12 +52,8 @@ class NodeProposalBroker {
 
     private NodeProposal handleMasterSelection(final NodeProposal proposal) {
         if (node.canAcceptMasterSelection()) {
-            NodeProposal reply = new NodeProposal();
-            reply.setNanoDuration(System.nanoTime());
-            long replyProposalId = node.tryToAcceptNewProposal("0", proposal.getProposalId());
-            reply.setProposalId(replyProposalId);
-            reply.setType(NodeProposalType.ACK.getCode());
-            return reply;
+            long replyProposalContent = node.tryToAcceptNewProposal("0", proposal.getProposalId());
+            return verbConstructor.constructAckForProposal(proposal.getProposalId(), String.valueOf(replyProposalContent));
         }
         return null;
     }

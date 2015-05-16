@@ -19,15 +19,18 @@ public class NodeProposalVerbConstructor {
         NodeProposal proposal = new NodeProposal();
         proposal.setNanoDuration(System.nanoTime());
         proposal.setType(NodeProposalType.MASTER_SELECTION.getCode());
-        proposal.setProposalId(sequenceGenerator.generateSequence());
+        long proposalId = sequenceGenerator.generateSequence();
+        proposal.setProposalId(proposalId);
+        proposal.setProposalContent(String.valueOf(proposalId));
         return proposal;
     }
 
-    public NodeProposal constructAckForProposal(NodeProposal targetProposal) {
+    public NodeProposal constructAckForProposal(long proposalId, String proposalContent) {
         NodeProposal proposal = new NodeProposal();
         proposal.setNanoDuration(System.nanoTime());
         proposal.setType(NodeProposalType.ACK.getCode());
-        proposal.setProposalId(targetProposal.getProposalId());
+        proposal.setProposalId(proposalId);
+        proposal.setProposalContent(proposalContent);
         return proposal;
     }
 }

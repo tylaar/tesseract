@@ -7,6 +7,7 @@ public class NodeProposal {
     private long nanoDuration;
     private int type;
     private long proposalId;
+    private String proposalContent;
 
     public long getNanoDuration() {
         return nanoDuration;
@@ -30,5 +31,13 @@ public class NodeProposal {
 
     public void setType(final int type) {
         this.type = type;
+    }
+
+    public String getProposalContent() {
+        return proposalContent;
+    }
+
+    public void setProposalContent(final String proposalContent) {
+        this.proposalContent = proposalContent;
     }
 }
