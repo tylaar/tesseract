@@ -47,9 +47,12 @@ public abstract class PriorityFiberAdvertiser<T> extends Fiber implements Advert
     protected void processSignal() {
         for (int i = 0 ; i < batchSize ; i++) {
 
-            final T task = queue.peek();
+            final T task = queue.poll();
             /**
              * If no task been picked, then it will go back to idle.
+             * It is still potential to result in some low priority
+             * task never been executed since the priority high one
+             * will always been executed first. No easy guarantee.
              */
             if (task == null) {
                 return;
