@@ -90,7 +90,7 @@ public class NodeService {
                     public void initChannel(SocketChannel ch) throws Exception {
 
                         ch.pipeline().addLast(new NodeServerHandler(proposalBroker));
-                        ch.pipeline().addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
+                        //ch.pipeline().addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
 
                         ch.pipeline().addLast(new JsonObjectDecoder());
                         ch.pipeline().addLast(new StringEncoder());
@@ -115,10 +115,10 @@ public class NodeService {
 
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new NodeClientInboundHandler());
+                            ch.pipeline().addLast(new NodeClientInboundHandler(proposalBroker));
+                            //ch.pipeline().addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
 
-                            ch.pipeline().addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
-                            ch.pipeline().addLast(new StringDecoder());
+                            ch.pipeline().addLast(new JsonObjectDecoder());
                             ch.pipeline().addLast(new StringEncoder());
                         }
                     });
@@ -130,8 +130,8 @@ public class NodeService {
     }
 
     public void init() {
-        serverExecutor = new ThreadPoolExecutor(2, 4, 10, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(10));
-        clientExecutor = new ThreadPoolExecutor(2, 4, 10, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(10));
+        serverExecutor = new ThreadPoolExecutor(4, 8, 10, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(10));
+        clientExecutor = new ThreadPoolExecutor(4, 8, 10, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(10));
         serverExecutor.execute(new Runnable() {
             @Override
             public void run() {

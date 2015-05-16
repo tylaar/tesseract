@@ -33,13 +33,19 @@ class NodeServerHandler extends ChannelInboundHandlerAdapter {
         ByteBuf in = (ByteBuf) msg;
         try {
             NodeProposal proposal = MarshallUtils.fromStringToProposal(in.toString(CharsetUtil.UTF_8));
-            System.out.println("server read hit" + proposal.getProposalId());
+            System.out.println("server read hit" + proposal.getProposalId() + " and type: " + proposal.getType());
             /**
              * One thing that we shall always bear in mind is that, proposal broker
              * theoretically shall be state less. The code is shared by different
              * thread.
              */
-            proposalBroker.handleProposal(proposal);
+            NodeProposal reply = proposalBroker.handleProposal(proposal);
+
+            if (reply != null && ctx.channel().isWritable()) {
+                System.out.println("replying: ");
+                proposalBroker.replyProposal(ctx.channel(), reply);
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
