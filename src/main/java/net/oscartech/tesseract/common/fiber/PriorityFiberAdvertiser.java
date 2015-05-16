@@ -40,28 +40,24 @@ public abstract class PriorityFiberAdvertiser<T> extends Fiber implements Advert
     }
 
     @Override
-    public boolean isSignaled() {
+    public synchronized boolean isSignaled() {
         return !queue.isEmpty();
     }
 
     protected void processSignal() {
         for (int i = 0 ; i < batchSize ; i++) {
-            queueLock.readLock().lock();
-            try {
-                final T task = queue.peek();
-                /**
-                 * If no task been picked, then it will go back to idle.
-                 */
-                if (task == null) {
-                    return;
-                }
-                process(task);
 
-                if(isPaused() || isHalt()) {
-                    return;
-                }
-            } finally {
-                queueLock.readLock().unlock();
+            final T task = queue.peek();
+            /**
+             * If no task been picked, then it will go back to idle.
+             */
+            if (task == null) {
+                return;
+            }
+            process(task);
+
+            if(isPaused() || isHalt()) {
+                return;
             }
         }
     }
