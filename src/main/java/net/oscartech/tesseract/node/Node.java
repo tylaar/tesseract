@@ -9,7 +9,8 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * Created by tylaar on 15/4/26.
  */
 public class Node {
-    private volatile NodeState state;
+
+    private volatile NodeState state = new NodeState(0);
 
     private Map<Long, Long> txIdToAcceptId = new ConcurrentHashMap<>();
 
@@ -24,6 +25,22 @@ public class Node {
         @Override
         public int compareTo(final NodeState o) {
             return this.code.compareTo(o.code);
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            final NodeState nodeState = (NodeState) o;
+
+            return code.equals(nodeState.code);
+
+        }
+
+        @Override
+        public int hashCode() {
+            return code.hashCode();
         }
     }
 

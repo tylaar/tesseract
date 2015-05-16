@@ -5,6 +5,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.CharsetUtil;
+import net.oscartech.tesseract.node.pojo.NodeProposal;
 import net.oscartech.tesseract.node.util.MarshallUtils;
 
 import java.io.IOException;
@@ -31,7 +32,14 @@ class NodeServerHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(final ChannelHandlerContext ctx, Object msg) {
         ByteBuf in = (ByteBuf) msg;
         try {
-            System.out.println("server read hit" + MarshallUtils.fromStringToProposal(in.toString(CharsetUtil.UTF_8)).getProposalId());
+            NodeProposal proposal = MarshallUtils.fromStringToProposal(in.toString(CharsetUtil.UTF_8));
+            System.out.println("server read hit" + proposal.getProposalId());
+            /**
+             * One thing that we shall always bear in mind is that, proposal broker
+             * theoretically shall be state less. The code is shared by different
+             * thread.
+             */
+            proposalBroker.handleProposal(proposal);
         } catch (IOException e) {
             e.printStackTrace();
         }
