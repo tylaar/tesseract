@@ -11,11 +11,9 @@ import net.oscartech.tesseract.node.util.MarshallUtils;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A broker shall be responsible for tmux proposal.
@@ -74,28 +72,6 @@ public class NodeProposalBroker {
         return null;
     }
 
-    private void sendProposal(NodeProposal nodeProposal) {
-        System.out.println("this is broker: " + this.hashCode() + " trying to send proposal.");
-
-        try {
-            peerTopology.awaitForNetworkToBeInitialized();
-            for (Channel channel : peerTopology.getPeerHostChannels()) {
-
-                if (channel.isWritable()) {
-                    System.out.println("writable");
-                }
-                cacheProposalValue(nodeProposal);
-                String proposalWords = MarshallUtils.serializeToString(nodeProposal);
-                channel.writeAndFlush(proposalWords);
-                System.out.println("delivering" + proposalWords);
-            }
-        } catch (IOException e) {
-            throw new NodeProcessException("during proposal marshalling, exception happened:", e);
-        } catch (InterruptedException e) {
-            throw new NodeProcessException("node initialization procedure interrupted.");
-        }
-    }
-
     /**
      * ONLY local thread can call this.
      * @param nodeProposal
@@ -140,6 +116,28 @@ public class NodeProposalBroker {
         NodeProposal proposal = verbConstructor.constructMasterSelectionProposal();
         sendProposal(proposal);
         tryToPreCommitProposal(proposal);
+    }
+
+    private void sendProposal(NodeProposal nodeProposal) {
+        System.out.println("this is broker: " + this.hashCode() + " trying to send proposal.");
+
+        try {
+            peerTopology.awaitForNetworkToBeInitialized();
+            for (Channel channel : peerTopology.getPeerHostChannels()) {
+
+                if (channel.isWritable()) {
+                    System.out.println("writable");
+                }
+                cacheProposalValue(nodeProposal);
+                String proposalWords = MarshallUtils.serializeToString(nodeProposal);
+                channel.writeAndFlush(proposalWords);
+                System.out.println("delivering" + proposalWords);
+            }
+        } catch (IOException e) {
+            throw new NodeProcessException("during proposal marshalling, exception happened:", e);
+        } catch (InterruptedException e) {
+            throw new NodeProcessException("node initialization procedure interrupted.");
+        }
     }
 
     public void handleAck(final NodeProposal reply) {
