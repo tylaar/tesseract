@@ -48,7 +48,7 @@ class NodeProposalBroker {
         if (node.canAcceptMasterSelection()) {
             NodeProposal reply = new NodeProposal();
             reply.setNanoDuration(System.nanoTime());
-            long replyProposalId = node.tryToAcceptNewProposal(0, proposal.getProposalId());
+            long replyProposalId = node.tryToAcceptNewProposal("0", proposal.getProposalId());
             reply.setProposalId(replyProposalId);
             return reply;
         }
@@ -56,6 +56,7 @@ class NodeProposalBroker {
     }
 
     private void sendProposal(NodeProposal nodeProposal) {
+        System.out.println("this is broker: " + this.hashCode() + " trying to send proposal.");
         if (!peerTopology.isNetworkInitialized()) {
             System.out.println("not ready for proposal");
             return;

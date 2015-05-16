@@ -31,6 +31,13 @@ public class NodeServiceTest {
         proposal.setNanoDuration(System.nanoTime());
         Thread.sleep(2000);
         service.sendMasterProposal();
+        service = services.get(1);
+        proposal = new NodeProposal();
+        proposal.setProposalId(NodeServiceFactory.getSequenceGenerator().generateSequence());
+        proposal.setType(0);
+        proposal.setNanoDuration(System.nanoTime());
+        Thread.sleep(2000);
+        service.sendMasterProposal();
 
         while(true) {
             Thread.yield();

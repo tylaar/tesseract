@@ -46,7 +46,7 @@ public class NodeService {
     public NodeService(final String address, final int port, final List<String> networkTopology, final SequenceGenerator sequenceGenerator) {
         this.node = new Node();
         this.peerTopology = new NodePeerTopology(parseFromConfig(networkTopology), new NodeAddress(address, port));
-        this.node.setCurrentAcceptId(0, sequenceGenerator.generateSequence());
+        this.node.setCurrentAcceptId("0", sequenceGenerator.generateSequence());
 
         this.serverBootstrap = getServerBootStrap();
         this.clientBootstrap = getClientBootStrap();
@@ -62,7 +62,7 @@ public class NodeService {
     public NodeService(final int port, final List<String> networkTopology, final SequenceGenerator sequenceGenerator) {
         this.node = new Node();
         this.peerTopology = new NodePeerTopology(parseFromConfig(networkTopology), new NodeAddress(port));
-        this.node.setCurrentAcceptId(0l, sequenceGenerator.generateSequence());
+        this.node.setCurrentAcceptId("0", sequenceGenerator.generateSequence());
 
         this.serverBootstrap = getServerBootStrap();
         this.clientBootstrap = getClientBootStrap();

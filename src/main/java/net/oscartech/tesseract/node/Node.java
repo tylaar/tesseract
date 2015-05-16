@@ -21,7 +21,7 @@ public class Node {
      * the ability to see big picture. Thus, for specific scenario, we need to use unified
      * Transaction Id, to make sure every one in the quorum is trying to achieve the same thing.
      */
-    private Map<Long, Long> txIdToAcceptId = new ConcurrentHashMap<>();
+    private Map<String, Long> txIdToAcceptId = new ConcurrentHashMap<>();
 
     class NodeState implements Comparable<NodeState> {
 
@@ -59,6 +59,12 @@ public class Node {
     private final NodeState ACCEPT_PROPOSE = new NodeState(3);
     private final NodeState PRE_COMMIT = new NodeState(4);
 
+    /**
+     * Some common transaction Id we are going to use for cluster to reach agreement:
+     * 1. Master selection.
+     */
+    private final static String MASTER_SELECTION_TX_ID = "0";
+
     private AtomicReferenceFieldUpdater<Node, NodeState> changer = AtomicReferenceFieldUpdater.newUpdater(
             Node.class,
             NodeState.class,
@@ -83,11 +89,13 @@ public class Node {
         throw new RuntimeException("not a good time to pre commit");
     }
 
-    private synchronized long submitNewProposal(long txId, long version) {
+    private synchronized long submitNewProposal(String txId, long version) {
         long currentVersionSnapshot = txIdToAcceptId.get(txId);
         if (txIdToAcceptId.get(txId) > version) {
             return currentVersionSnapshot;
         }
+        System.out.println("I am trying to use the new version:" + version);
+        txIdToAcceptId.put(txId, version);
         return version;
     }
 
@@ -111,7 +119,7 @@ public class Node {
         throw new RuntimeException("this is not a good time to accept");
     }
 
-    public void setCurrentAcceptId(final long txId, final long currentAcceptId) {
+    public void setCurrentAcceptId(final String txId, final long currentAcceptId) {
         this.txIdToAcceptId.put(txId, currentAcceptId);
     }
 
@@ -123,7 +131,7 @@ public class Node {
         return changer.get(this).equals(INITAL);
     }
 
-    public long tryToAcceptNewProposal(long txId, long proposalId) {
+    public long tryToAcceptNewProposal(String txId, long proposalId) {
         return submitNewProposal(txId,proposalId);
     }
 
