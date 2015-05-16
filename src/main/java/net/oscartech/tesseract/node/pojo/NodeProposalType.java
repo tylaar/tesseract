@@ -12,7 +12,9 @@ import java.util.Map;
 public enum NodeProposalType {
     MASTER_SELECTION(0),
     LOCK_ACQUIRE(1),
-    ACK(2);
+    ACK(2),
+    PRECOMMIT(3),
+    COMMIT(4);
 
     private int code;
 

@@ -33,4 +33,13 @@ public class NodeProposalVerbConstructor {
         proposal.setProposalContent(proposalContent);
         return proposal;
     }
+
+    public NodeProposal constructPreCommitProposal(NodeProposal baseProposal) {
+        NodeProposal proposal = new NodeProposal();
+        proposal.setNanoDuration(System.nanoTime());
+        proposal.setType(NodeProposalType.PRECOMMIT.getCode());
+        proposal.setProposalId(baseProposal.getProposalId());
+        proposal.setProposalContent(baseProposal.getProposalContent());
+        return proposal;
+    }
 }

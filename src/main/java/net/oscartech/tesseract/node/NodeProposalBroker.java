@@ -6,10 +6,10 @@ import net.oscartech.tesseract.node.exception.NodeProcessException;
 import net.oscartech.tesseract.node.pojo.NodeProposal;
 import net.oscartech.tesseract.node.pojo.NodeProposalType;
 import net.oscartech.tesseract.node.util.MarshallUtils;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,7 +32,8 @@ class NodeProposalBroker {
      * These fields below are protocol aware and vital.
      */
     private ConcurrentHashMap<Long, String> ongoingProposalMapping = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<Long, CountDownLatch> latchCoucurrentHashMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Long, CountDownLatch> preCommitCountingLatch = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Long, CountDownLatch> commitCountingLatch = new ConcurrentHashMap<>();
 
     public NodeProposalBroker(final Node node, final NodePeerTopology peerTopology, final NodeProposalVerbConstructor verbConstructor) {
         this.node = node;
@@ -50,6 +51,9 @@ class NodeProposalBroker {
             return handleMasterSelection(proposal);
         } else if (proposal.getType() == NodeProposalType.LOCK_ACQUIRE.getCode()) {
             return handleNormalProposal(proposal);
+        } else if (proposal.getType() == NodeProposalType.PRECOMMIT.getCode()) {
+            System.out.println("YESSSS");
+            return null;
         } else {
             return null;
         }
@@ -83,7 +87,6 @@ class NodeProposalBroker {
                 channel.writeAndFlush(proposalWords);
                 System.out.println("delivering" + proposalWords);
             }
-            tryToPreCommitProposal(nodeProposal);
         } catch (IOException e) {
             throw new NodeProcessException("during proposal marshalling, exception happened:", e);
         } catch (InterruptedException e) {
@@ -100,7 +103,7 @@ class NodeProposalBroker {
     }
 
     private void tryToPreCommitProposal(final NodeProposal nodeProposal) {
-        if (latchCoucurrentHashMap.contains(nodeProposal.getProposalId())) {
+        if (preCommitCountingLatch.contains(nodeProposal.getProposalId())) {
             throw new NodeProcessException("node pre commit failure. there is leaking latch resource in proposal broker.");
         }
 
@@ -108,7 +111,7 @@ class NodeProposalBroker {
          * Putting a latch inside the mapping for tracking.
          */
         final CountDownLatch latch = new CountDownLatch(this.peerTopology.getNetworkTopology().size() / 2 + 1);
-        latchCoucurrentHashMap.put(nodeProposal.getProposalId(), latch);
+        preCommitCountingLatch.put(nodeProposal.getProposalId(), latch);
 
         final Runnable preCommitHookUp = new Runnable() {
             @Override
@@ -121,7 +124,8 @@ class NodeProposalBroker {
                         sendPrecommitProposal(nodeProposal);
                     } else {
                         System.out.println("time out reached. This transaction will be aborted.");
-                        latchCoucurrentHashMap.remove(nodeProposal.getProposalId());
+                        preCommitCountingLatch.remove(nodeProposal.getProposalId());
+                        ongoingProposalMapping.remove(nodeProposal.getProposalId());
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -134,6 +138,38 @@ class NodeProposalBroker {
 
     private void sendPrecommitProposal(final NodeProposal nodeProposal) {
 
+        sendProposal(verbConstructor.constructPreCommitProposal(nodeProposal));
+
+        if (commitCountingLatch.contains(nodeProposal.getProposalId())) {
+            throw new NodeProcessException("node commit failure. there is leaking latch resource in proposal commit broker.");
+        }
+
+        /**
+         * Putting a latch inside the mapping for tracking.
+         */
+        final CountDownLatch latch = new CountDownLatch(this.peerTopology.getNetworkTopology().size() / 2 + 1);
+        commitCountingLatch.put(nodeProposal.getProposalId(), latch);
+
+        final Runnable commitHookUp = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    System.out.println("waiting for count down latch.");
+                    boolean result = latch.await(5, TimeUnit.SECONDS);
+                    if (result) {
+                        System.out.println("I AAAAAMMMMM the MASTER !!!!");
+                    } else {
+                        System.out.println("time out reached. This transaction will be aborted.");
+                        commitCountingLatch.remove(nodeProposal.getProposalId());
+                        ongoingProposalMapping.remove(nodeProposal.getProposalId());
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        fiber.execute(commitHookUp);
     }
 
     public void replyProposal(Channel targetChannel, NodeProposal proposalReply) {
@@ -151,6 +187,7 @@ class NodeProposalBroker {
     public void sendMasterProposal() throws IOException {
         NodeProposal proposal = verbConstructor.constructMasterSelectionProposal();
         sendProposal(proposal);
+        tryToPreCommitProposal(proposal);
     }
 
     public void handleAck(final NodeProposal reply) {
@@ -162,12 +199,11 @@ class NodeProposalBroker {
             /**
              * I've got a positive ack from peer side!.
              */
-            CountDownLatch latch = latchCoucurrentHashMap.get(reply.getProposalId());
+            CountDownLatch latch = preCommitCountingLatch.get(reply.getProposalId());
             if (latch == null) {
                 System.out.println("latch timeout will automatically remove itself from the mapping.");
             } else {
                 latch.countDown();
-
                 System.out.println("counting down to: " + latch.getCount());
             }
         } else if (!ongoingProposalMapping.containsKey(reply.getProposalId())){
