@@ -92,6 +92,7 @@ public class Node {
     private synchronized long submitNewProposal(String txId, long version) {
         long currentVersionSnapshot = txIdToAcceptId.get(txId);
         if (currentVersionSnapshot > version) {
+            System.out.println("SKIPPING as my current version is much more later.");
             return currentVersionSnapshot;
         }
         System.out.println("I am trying to use the new version:" + version + "instead of my old value: " + currentVersionSnapshot);
