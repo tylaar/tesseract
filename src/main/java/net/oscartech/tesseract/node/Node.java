@@ -12,6 +12,15 @@ public class Node {
 
     private volatile NodeState state = new NodeState(0);
 
+    /**
+     * Sometimes the txId between each transaction is correlated in syntax/context layer,
+     * for e.g, every one is going to select himself as the master, of course they are going
+     * to use different txId if they are generating the txId them self. However, the purpose
+     * of these proposals are all the same: to select a king out of nodes. In this context,
+     * if we use different txId to mark different proposal and response, thread will lose
+     * the ability to see big picture. Thus, for specific scenario, we need to use unified
+     * Transaction Id, to make sure every one in the quorum is trying to achieve the same thing.
+     */
     private Map<Long, Long> txIdToAcceptId = new ConcurrentHashMap<>();
 
     class NodeState implements Comparable<NodeState> {
@@ -94,6 +103,7 @@ public class Node {
     private boolean changeBackToAccepProposal() {
         return changer.compareAndSet(this, PRE_COMMIT, ACCEPT_PROPOSE);
     }
+
     private boolean changeBackToMasterSelection() {
         if (changer.compareAndSet(this, ACCEPT_PROPOSE, MASTER_CHOOSING)) {
             return true;
