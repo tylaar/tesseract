@@ -3,6 +3,8 @@ package net.oscartech.tesseract.node;
 import io.netty.channel.Channel;
 import net.oscartech.tesseract.common.fiber.FiberExecutor;
 import net.oscartech.tesseract.node.exception.NodeProcessException;
+import net.oscartech.tesseract.node.pojo.MasterPreCommitProposalTask;
+import net.oscartech.tesseract.node.pojo.MasterProposalTask;
 import net.oscartech.tesseract.node.pojo.NodeProposal;
 import net.oscartech.tesseract.node.pojo.NodeProposalType;
 import net.oscartech.tesseract.node.util.MarshallUtils;
@@ -19,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  * A broker shall be responsible for tmux proposal.
  * Created by tylaar on 15/4/29.
  */
-class NodeProposalBroker {
+public class NodeProposalBroker {
 
     private Node node;
     private NodePeerTopology peerTopology;
@@ -102,74 +104,24 @@ class NodeProposalBroker {
         ongoingProposalMapping.put(nodeProposal.getProposalId(), nodeProposal.getProposalContent());
     }
 
+    /**
+     * Put a task on the fiber to decouple the synchronized call.
+     * @param nodeProposal
+     */
     private void tryToPreCommitProposal(final NodeProposal nodeProposal) {
-        if (preCommitCountingLatch.contains(nodeProposal.getProposalId())) {
-            throw new NodeProcessException("node pre commit failure. there is leaking latch resource in proposal broker.");
-        }
-
-        /**
-         * Putting a latch inside the mapping for tracking.
-         */
-        final CountDownLatch latch = new CountDownLatch(this.peerTopology.getNetworkTopology().size() / 2 + 1);
-        preCommitCountingLatch.put(nodeProposal.getProposalId(), latch);
-
-        final Runnable preCommitHookUp = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    System.out.println("waiting for count down latch.");
-                    boolean result = latch.await(5, TimeUnit.SECONDS);
-                    if (result) {
-                        System.out.println("latch down reached.");
-                        sendPrecommitProposal(nodeProposal);
-                    } else {
-                        System.out.println("time out reached. This transaction will be aborted.");
-                        preCommitCountingLatch.remove(nodeProposal.getProposalId());
-                        ongoingProposalMapping.remove(nodeProposal.getProposalId());
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-
-        fiber.execute(preCommitHookUp);
+        MasterProposalTask task = new MasterProposalTask(nodeProposal, this);
+        fiber.execute(task);
     }
 
-    private void sendPrecommitProposal(final NodeProposal nodeProposal) {
+    public void sendPrecommitProposal(final NodeProposal nodeProposal) {
+        NodeProposal preCommitProposal = verbConstructor.constructPreCommitProposal(nodeProposal);
+        sendProposal(preCommitProposal);
+        tryToCommitProposal(nodeProposal);
+    }
 
-        sendProposal(verbConstructor.constructPreCommitProposal(nodeProposal));
-
-        if (commitCountingLatch.contains(nodeProposal.getProposalId())) {
-            throw new NodeProcessException("node commit failure. there is leaking latch resource in proposal commit broker.");
-        }
-
-        /**
-         * Putting a latch inside the mapping for tracking.
-         */
-        final CountDownLatch latch = new CountDownLatch(this.peerTopology.getNetworkTopology().size() / 2 + 1);
-        commitCountingLatch.put(nodeProposal.getProposalId(), latch);
-
-        final Runnable commitHookUp = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    System.out.println("waiting for count down latch.");
-                    boolean result = latch.await(5, TimeUnit.SECONDS);
-                    if (result) {
-                        System.out.println("I AAAAAMMMMM the MASTER !!!!");
-                    } else {
-                        System.out.println("time out reached. This transaction will be aborted.");
-                        commitCountingLatch.remove(nodeProposal.getProposalId());
-                        ongoingProposalMapping.remove(nodeProposal.getProposalId());
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-
-        fiber.execute(commitHookUp);
+    private void tryToCommitProposal(final NodeProposal nodeProposal) {
+        MasterPreCommitProposalTask task = new MasterPreCommitProposalTask(nodeProposal, this);
+        fiber.execute(task);
     }
 
     public void replyProposal(Channel targetChannel, NodeProposal proposalReply) {
@@ -209,5 +161,21 @@ class NodeProposalBroker {
         } else if (!ongoingProposalMapping.containsKey(reply.getProposalId())){
             System.out.println("no ongoing my proposal discovered in local cache. Probably timeout and failed.");
         }
+    }
+
+    public ConcurrentHashMap<Long, String> getOngoingProposalMapping() {
+        return ongoingProposalMapping;
+    }
+
+    public ConcurrentHashMap<Long, CountDownLatch> getPreCommitCountingLatch() {
+        return preCommitCountingLatch;
+    }
+
+    public ConcurrentHashMap<Long, CountDownLatch> getCommitCountingLatch() {
+        return commitCountingLatch;
+    }
+
+    public int getQuorumSize() {
+        return this.peerTopology.getNetworkTopology().size();
     }
 }
