@@ -108,6 +108,9 @@ public class Node {
         return true;
     }
 
+    private boolean changeFromInitialToMasterSelecting() {
+        return changer.compareAndSet(this, INITAL, MASTER_CHOOSING);
+    }
 
     private boolean changeBackToAccepProposal() {
         return changer.compareAndSet(this, PRE_COMMIT, ACCEPT_PROPOSE);
