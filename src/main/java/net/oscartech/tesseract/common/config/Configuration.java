@@ -1,5 +1,8 @@
 package net.oscartech.tesseract.common.config;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -7,27 +10,38 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by tylaar on 15/5/17.
  */
 public class Configuration {
-    public static Map<String, Map<String, String>> configurationMap = new ConcurrentHashMap<>();
 
-    public static Map<String, String> getComponentConfig(String componentName) {
-        return configurationMap.get(componentName);
+    public Config config = ConfigFactory.load();
+    public String configPrefix = null;
+
+    public Configuration(final String configPrefix) {
+        this.configPrefix = configPrefix;
     }
 
-    public static void putComponentConfig(String componentName, String configName, String configValue) {
-        Map<String, String> componentConfig;
-        if (configurationMap.containsKey(componentName)) {
-            componentConfig = configurationMap.get(componentName);
-        } else {
-            componentConfig = new ConcurrentHashMap<>();
-            configurationMap.put(componentName, componentConfig);
-        }
-        componentConfig.put(configName, configValue);
+    public void putComponentConfig(String componentName, String configName, String configValue) {
+
     }
 
-    public static String getComponentConfigValue(String componentName, String configName) {
-        if (configurationMap.containsKey(componentName)) {
-            return configurationMap.get(componentName).get(configName);
+    private String getComponentConfigValue(String configName) {
+        if (config != null) {
+            return config.getString(configPrefix + "." + configName);
         }
         return null;
+    }
+
+    public String getString(String configName) {
+        return getComponentConfigValue(configName);
+    }
+
+    public long getLong(String configName) {
+        return Long.valueOf(getComponentConfigValue(configName));
+    }
+
+    public boolean getBoolean(String configName) {
+        return Boolean.valueOf(getComponentConfigValue(configName));
+    }
+
+    public int getInt(final String configName) {
+        return Integer.valueOf(getComponentConfigValue(configName));
     }
 }
