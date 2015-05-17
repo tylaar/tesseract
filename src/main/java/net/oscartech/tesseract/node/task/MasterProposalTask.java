@@ -1,7 +1,7 @@
 package net.oscartech.tesseract.node.task;
 
+import com.google.common.base.Throwables;
 import net.oscartech.tesseract.node.NodeProposalBroker;
-import net.oscartech.tesseract.node.exception.NodeProcessException;
 import net.oscartech.tesseract.node.pojo.NodeProposal;
 
 import java.util.concurrent.CountDownLatch;
@@ -20,11 +20,7 @@ public class MasterProposalTask extends ProposalTask {
     }
 
     @Override
-    public void run() {
-        if (proposalBroker.getPreCommitCountingLatch().contains(proposal.getProposalId())) {
-            throw new NodeProcessException("node pre commit failure. there is leaking latch resource in proposal broker.");
-        }
-
+    public void latching() {
         /**
          * Putting a latch inside the mapping for tracking.
          */
@@ -38,13 +34,29 @@ public class MasterProposalTask extends ProposalTask {
                 System.out.println("latch down reached.");
                 proposalBroker.sendPrecommitProposal(proposal);
             } else {
-                System.out.println("time out reached. This transaction will be aborted.");
-                proposalBroker.getPreCommitCountingLatch().remove(proposal.getProposalId());
-                proposalBroker.getOngoingProposalMapping().remove(proposal.getProposalId());
+                System.out.println("timeout reaching for latch. aborting");
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
+    }
+
+    @Override
+    protected void cleanup() {
+        System.out.println("cleaning up job trigger");
+        proposalBroker.getPreCommitCountingLatch().remove(proposal.getProposalId());
+        proposalBroker.getOngoingProposalMapping().remove(proposal.getProposalId());
+    }
+
+    @Override
+    public NodeProposal getWrappedProposal() {
+        return this.proposal;
+    }
+
+
+    @Override
+    public boolean validatingProposalExistence() {
+        return proposalBroker.getPreCommitCountingLatch().contains(proposal.getProposalId());
     }
 }

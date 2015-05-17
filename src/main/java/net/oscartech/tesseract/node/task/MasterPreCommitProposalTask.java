@@ -1,9 +1,7 @@
 package net.oscartech.tesseract.node.task;
 
 import net.oscartech.tesseract.node.NodeProposalBroker;
-import net.oscartech.tesseract.node.exception.NodeProcessException;
 import net.oscartech.tesseract.node.pojo.NodeProposal;
-import net.oscartech.tesseract.node.task.ProposalTask;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -22,11 +20,18 @@ public class MasterPreCommitProposalTask extends ProposalTask {
     }
 
     @Override
-    public void run() {
-        if (proposalBroker.getCommitCountingLatch().contains(nodeProposal.getProposalId())) {
-            throw new NodeProcessException("node commit failure. there is leaking latch resource in proposal commit broker.");
-        }
+    protected void cleanup() {
+        proposalBroker.getCommitCountingLatch().remove(nodeProposal.getProposalId());
+        proposalBroker.getOngoingProposalMapping().remove(nodeProposal.getProposalId());
+    }
 
+    @Override
+    public NodeProposal getWrappedProposal() {
+        return nodeProposal;
+    }
+
+    @Override
+    public void latching() {
         /**
          * Putting a latch inside the mapping for tracking.
          */
@@ -40,12 +45,15 @@ public class MasterPreCommitProposalTask extends ProposalTask {
                 System.out.println("I AAAAAMMMMM the MASTER !!!!");
             } else {
                 System.out.println("time out reached. This transaction will be aborted.");
-                proposalBroker.getCommitCountingLatch().remove(nodeProposal.getProposalId());
-                proposalBroker.getOngoingProposalMapping().remove(nodeProposal.getProposalId());
+
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
 
+    @Override
+    public boolean validatingProposalExistence() {
+        return proposalBroker.getCommitCountingLatch().contains(nodeProposal.getProposalId());
     }
 }
