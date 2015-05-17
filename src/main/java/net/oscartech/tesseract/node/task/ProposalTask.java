@@ -1,8 +1,13 @@
 package net.oscartech.tesseract.node.task;
 
+import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import net.oscartech.tesseract.node.exception.NodeProcessException;
 import net.oscartech.tesseract.node.pojo.NodeProposal;
+
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by tylaar on 15/5/16.
@@ -17,15 +22,38 @@ public abstract class ProposalTask implements Runnable {
             return;
         }
 
-        latching();
+        latching(wrapped);
         cleanup();
     }
 
     protected abstract void cleanup();
 
+    protected abstract int getQuorumSize();
+
+    protected abstract Map<Long, CountDownLatch> latchMap();
+
     public abstract NodeProposal getWrappedProposal();
 
-    public abstract void latching();
+    public abstract Function<Boolean, Void> getLatchingResultHook();
+
+    public void latching(final NodeProposal wrapped) {
+        /**
+         * Putting a latch inside the mapping for tracking.
+         */
+        final CountDownLatch latch = new CountDownLatch(getQuorumSize() / 2 + 1);
+        latchMap().put(wrapped.getProposalId(), latch);
+
+        try {
+            System.out.println("PreCommit : waiting for count down latch.");
+            /**
+             * Use default latching handle hookup to handle it.
+             */
+            getLatchingResultHook().apply(latch.await(5, TimeUnit.SECONDS));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * ERROR: I try to add this in the thread, but apparently this shall be a synchronized
      * verification in the receiving main thread instead of a task, so I comment this line out.

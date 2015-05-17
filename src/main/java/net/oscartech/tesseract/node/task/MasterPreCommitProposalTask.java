@@ -1,22 +1,38 @@
 package net.oscartech.tesseract.node.task;
 
+import com.google.common.base.Function;
 import net.oscartech.tesseract.node.NodeProposalBroker;
 import net.oscartech.tesseract.node.pojo.NodeProposal;
 
+import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
+ * We will see if this abstract class layer is a good call ...
  * Created by tylaar on 15/5/16.
  */
 public class MasterPreCommitProposalTask extends ProposalTask {
 
     private NodeProposal nodeProposal;
     private NodeProposalBroker proposalBroker;
+    private Function<Boolean, Void> handleLatchingResult;
 
     public MasterPreCommitProposalTask(final NodeProposal proposal, final NodeProposalBroker broker) {
         this.nodeProposal = proposal;
         this.proposalBroker = broker;
+        this.handleLatchingResult = new Function<Boolean, Void>() {
+            @Nullable
+            @Override
+            public Void apply(final Boolean latchResult) {
+                if (latchResult) {
+                    System.out.println("I AAAAAMMMMM the MASTER !!!!");
+                } else {
+                    System.out.println("time out reached. This transaction will be aborted.");
+                }
+                return null;
+            }
+        };
     }
 
     @Override
@@ -26,29 +42,23 @@ public class MasterPreCommitProposalTask extends ProposalTask {
     }
 
     @Override
+    protected int getQuorumSize() {
+        return proposalBroker.getQuorumSize();
+    }
+
+    @Override
+    protected Map<Long, CountDownLatch> latchMap() {
+        return proposalBroker.getPreCommitCountingLatch();
+    }
+
+    @Override
     public NodeProposal getWrappedProposal() {
         return nodeProposal;
     }
 
     @Override
-    public void latching() {
-        /**
-         * Putting a latch inside the mapping for tracking.
-         */
-        final CountDownLatch latch = new CountDownLatch(proposalBroker.getQuorumSize() / 2 + 1);
-        proposalBroker.getCommitCountingLatch().put(nodeProposal.getProposalId(), latch);
-
-        try {
-            System.out.println("PreCommit : waiting for count down latch.");
-            boolean result = latch.await(5, TimeUnit.SECONDS);
-            if (result) {
-                System.out.println("I AAAAAMMMMM the MASTER !!!!");
-            } else {
-                System.out.println("time out reached. This transaction will be aborted.");
-
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    public Function<Boolean, Void> getLatchingResultHook() {
+        return handleLatchingResult;
     }
+
 }
