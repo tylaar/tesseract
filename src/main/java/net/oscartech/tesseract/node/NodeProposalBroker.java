@@ -125,13 +125,13 @@ public class NodeProposalBroker {
             peerTopology.awaitForNetworkToBeInitialized();
             for (Channel channel : peerTopology.getPeerHostChannels()) {
 
-                if (channel.isWritable()) {
-                    System.out.println("writable");
+                if (!channel.isWritable()) {
+                    System.out.println("unwritable!!");
                 }
                 cacheProposalValue(nodeProposal);
                 String proposalWords = MarshallUtils.serializeToString(nodeProposal);
                 channel.writeAndFlush(proposalWords);
-                System.out.println("delivering" + proposalWords);
+                //System.out.println("delivering" + proposalWords);
             }
         } catch (IOException e) {
             throw new NodeProcessException("during proposal marshalling, exception happened:", e);

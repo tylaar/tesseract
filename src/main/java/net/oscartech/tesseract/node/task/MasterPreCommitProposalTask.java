@@ -39,7 +39,7 @@ public class MasterPreCommitProposalTask extends ProposalTask {
         proposalBroker.getCommitCountingLatch().put(nodeProposal.getProposalId(), latch);
 
         try {
-            System.out.println("waiting for count down latch.");
+            System.out.println("PreCommit : waiting for count down latch.");
             boolean result = latch.await(5, TimeUnit.SECONDS);
             if (result) {
                 System.out.println("I AAAAAMMMMM the MASTER !!!!");
@@ -50,10 +50,5 @@ public class MasterPreCommitProposalTask extends ProposalTask {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public boolean validatingProposalExistence() {
-        return proposalBroker.getCommitCountingLatch().contains(nodeProposal.getProposalId());
     }
 }

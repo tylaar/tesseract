@@ -28,7 +28,7 @@ public class MasterProposalTask extends ProposalTask {
         proposalBroker.getPreCommitCountingLatch().put(proposal.getProposalId(), latch);
 
         try {
-            System.out.println("waiting for count down latch.");
+            System.out.println("MasterINIT: waiting for count down latch.");
             boolean result = latch.await(5, TimeUnit.SECONDS);
             if (result) {
                 System.out.println("latch down reached.");
@@ -52,11 +52,5 @@ public class MasterProposalTask extends ProposalTask {
     @Override
     public NodeProposal getWrappedProposal() {
         return this.proposal;
-    }
-
-
-    @Override
-    public boolean validatingProposalExistence() {
-        return proposalBroker.getPreCommitCountingLatch().contains(proposal.getProposalId());
     }
 }

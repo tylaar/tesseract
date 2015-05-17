@@ -11,10 +11,7 @@ public abstract class ProposalTask implements Runnable {
     @Override
     public void run() {
         NodeProposal wrapped = getWrappedProposal();
-        if (!validatingProposalExistence()) {
-            System.out.println("task exception: no existing proposal id latch for this proposal, ignoring.");
-            return;
-        }
+
         if (wrapped == null) {
             Throwables.propagate(new NodeProcessException("task exception: null pointer for the wrapped task"));
             return;
@@ -30,8 +27,10 @@ public abstract class ProposalTask implements Runnable {
 
     public abstract void latching();
     /**
+     * ERROR: I try to add this in the thread, but apparently this shall be a synchronized
+     * verification in the receiving main thread instead of a task, so I comment this line out.
      * In order to let every other thread know that there is a exception happening. At least
      * in the very early days, this is easy for debugging.
      */
-    public abstract boolean validatingProposalExistence();
+    //public abstract boolean validatingProposalExistence();
 }
