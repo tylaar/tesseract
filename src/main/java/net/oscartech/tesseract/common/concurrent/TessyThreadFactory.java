@@ -61,6 +61,9 @@ public class TessyThreadFactory  implements ThreadFactory {
     public Thread newThread(final Runnable r) {
         Thread t = new Thread(new ThreadTask(r), name + "-" + threadCount.incrementAndGet());
         t.setDaemon(true);
+        /**
+         * Need to monitor it before it's out of control.
+         */
         addThread(t);
         cleanUp();
         return t;
