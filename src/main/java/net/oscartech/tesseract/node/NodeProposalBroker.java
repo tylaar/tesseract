@@ -103,10 +103,10 @@ public class NodeProposalBroker {
     public void replyProposal(Channel targetChannel, NodeProposal proposalReply) {
         System.out.println("this is broker: " + this.hashCode() + " trying to reply proposal.");
         try {
-            if (targetChannel.isWritable()) {
-                System.out.println("broker is going to reply to the writable channel");
-                targetChannel.writeAndFlush(MarshallUtils.serializeToString(proposalReply));
+            if (!targetChannel.isWritable()) {
+                System.out.println("broker is NOT going to reply to the writable channel because channel is not writable");
             }
+            targetChannel.writeAndFlush(MarshallUtils.serializeToString(proposalReply));
         } catch (IOException e) {
             throw new NodeProcessException("during proposal marshalling, exception happened:", e);
         }

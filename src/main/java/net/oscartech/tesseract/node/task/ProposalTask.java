@@ -28,6 +28,11 @@ public abstract class ProposalTask implements Runnable {
 
     protected abstract void cleanup();
 
+    /**
+     * Sometimes it will be easy for the impl task to determine how many ack it requires to finish an
+     * operation. This is vital for some scenario to adjust the robust and availability to the system.
+     * @return
+     */
     protected abstract int getQuorumSize();
 
     protected abstract Map<Long, CountDownLatch> latchMap();

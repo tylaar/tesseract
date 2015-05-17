@@ -199,9 +199,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.qiniu</groupId>
-            <artifactId>sdk</artifactId>
-            <version>[6.1.7, 6.999]</version>
+            <groupId>com.higherfrequencytrading</groupId>
+            <artifactId>chronicle-parent</artifactId>
+            <version>1.8</version>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>

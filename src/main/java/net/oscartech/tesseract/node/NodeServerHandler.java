@@ -9,6 +9,7 @@ import net.oscartech.tesseract.node.pojo.NodeProposal;
 import net.oscartech.tesseract.node.util.MarshallUtils;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
 * Created by tylaar on 15/4/29.
@@ -17,6 +18,7 @@ import java.io.IOException;
 class NodeServerHandler extends ChannelInboundHandlerAdapter {
 
     private NodeProposalBroker proposalBroker;
+    private AtomicInteger counter = new AtomicInteger(0);
 
     NodeServerHandler(final NodeProposalBroker proposalBroker) {
         this.proposalBroker = proposalBroker;
@@ -32,8 +34,9 @@ class NodeServerHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(final ChannelHandlerContext ctx, Object msg) {
         ByteBuf in = (ByteBuf) msg;
         try {
+            counter.getAndIncrement();
             NodeProposal proposal = MarshallUtils.fromStringToProposal(in.toString(CharsetUtil.UTF_8));
-            System.out.println("server read hit" + proposal.getProposalId() + " and type: " + proposal.getType());
+            //System.out.println("server read hit" + proposal.getProposalId() + " and type: " + proposal.getType());
             /**
              * One thing that we shall always bear in mind is that, proposal broker
              * theoretically shall be state less. The code is shared by different
@@ -49,6 +52,10 @@ class NodeServerHandler extends ChannelInboundHandlerAdapter {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public int getCounter() {
+        return counter.get();
     }
 
 }
