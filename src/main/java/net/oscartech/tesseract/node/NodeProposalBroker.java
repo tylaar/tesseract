@@ -148,6 +148,9 @@ public class NodeProposalBroker {
                 && ongoingProposalMapping.get(reply.getProposalId()).equals(reply.getProposalContent())) {
             /**
              * I've got a positive ack from peer side!.
+             * Latch itself is stored in the concurrent hash map, so it's possible that
+             * when the thread have a chance to check for this, it's already gone due
+             * to timeout issue.
              */
             CountDownLatch latch = preCommitCountingLatch.get(reply.getProposalId());
             if (latch == null) {
