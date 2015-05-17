@@ -1,7 +1,8 @@
-package net.oscartech.tesseract.node.pojo;
+package net.oscartech.tesseract.node.task;
 
 import net.oscartech.tesseract.node.NodeProposalBroker;
 import net.oscartech.tesseract.node.exception.NodeProcessException;
+import net.oscartech.tesseract.node.pojo.NodeProposal;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
