@@ -5,9 +5,9 @@ import net.oscartech.tesseract.node.exception.ConfigurationException;
 /**
  * Created by tylaar on 15/5/17.
  */
-public class Assert {
+public class Check {
 
-    private Assert() {}
+    private Check() {}
 
     /**
      * Validates that a entry is not null.
