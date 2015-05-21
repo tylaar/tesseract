@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 /**
+ * Execute in a linear way.
  * Created by tylaar on 15/5/9.
  */
 public abstract class Fiber {
