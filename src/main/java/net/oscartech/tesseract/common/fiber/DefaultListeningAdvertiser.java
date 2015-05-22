@@ -21,9 +21,7 @@ public class DefaultListeningAdvertiser<T> implements ListeningAdvertiser<T> {
 
     @Override
     public void addCallback(final Executor executor, final Callback<? super T> callback) {
-        if (callback == null)
-            return;
-        if (executor == null)
+        if (callback == null || executor == null)
             return;
         callbackLock.writeLock().lock();
         try {
