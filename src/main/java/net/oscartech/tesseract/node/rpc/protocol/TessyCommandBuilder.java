@@ -20,7 +20,7 @@ public class TessyCommandBuilder {
     }
 
     public TessyCommandBuilder setCommandFormat(TessyFormat format) {
-        this.setCommandFormat(format);
+        this.commandToBeRendered.setCommandFormat(format);
         return this;
     }
 
