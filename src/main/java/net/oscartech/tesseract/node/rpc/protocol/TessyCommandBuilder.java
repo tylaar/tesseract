@@ -14,6 +14,11 @@ public class TessyCommandBuilder {
         return new TessyCommandBuilder();
     }
 
+    public TessyCommandBuilder setServiceName(String serviceName) {
+        this.commandToBeRendered.setServiceName(serviceName);
+        return this;
+    }
+
     public TessyCommandBuilder setCommandName(String name) {
         this.commandToBeRendered.setCommandName(name);
         return this;

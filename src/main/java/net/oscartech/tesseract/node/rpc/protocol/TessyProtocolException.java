@@ -6,6 +6,11 @@ package net.oscartech.tesseract.node.rpc.protocol;
 public class TessyProtocolException extends RuntimeException {
     public static final int PARAM_ALREADY_EXIST = 0;
     public static final int PROTOCOL_NAME_NOT_EXIST = 1;
+    public static final int PARAM_NUM_MIS_MATCH = 2;
+    public static final int PARAM_TYPE_ERROR = 3;
+    public static final int SERVICE_NAME_NOT_EXIST = 4;
+    public static final int TOO_MANY_PARAMS = 5;
+    public static final int PARAM_NAME_MIS_MATCH = 6;
 
     private int code;
     private String description;

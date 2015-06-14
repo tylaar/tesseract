@@ -7,9 +7,18 @@ import java.util.Map;
  * Created by tylaar on 15/6/13.
  */
 public class TessyCommand {
+    private String serviceName;
     private String commandName;
     private TessyFormat commandFormat;
     private Map<String, String> commandParams;
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(final String serviceName) {
+        this.serviceName = serviceName;
+    }
 
     public String getCommandName() {
         return commandName;
