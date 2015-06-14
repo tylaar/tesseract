@@ -3,6 +3,7 @@ package net.oscartech.tesseract.node.rpc.aop;
 import freemarker.ext.beans.HashAdapter;
 import net.oscartech.tesseract.node.rpc.protocol.RpcMethodUtils;
 import net.oscartech.tesseract.node.rpc.protocol.TessyCommand;
+import net.oscartech.tesseract.node.rpc.protocol.TessyCommandParam;
 import net.oscartech.tesseract.node.rpc.protocol.TessyProtocolException;
 import org.reflections.Reflections;
 
@@ -36,6 +37,7 @@ public class RpcServiceProcessor{
         for (Class<?> clazz : result) {
             RpcService serviceName = clazz.getAnnotation(RpcService.class);
             serviceMap.put(serviceName.name(), clazz);
+            extractEachClazzAnnotation(clazz);
         }
     }
 
@@ -91,10 +93,10 @@ public class RpcServiceProcessor{
     }
 
     private boolean nameValidation(final MethodSig signature, final TessyCommand command) {
-        String[] params = (String[]) command.getCommandParams().keySet().toArray();
+        TessyCommandParam[] params = (TessyCommandParam[]) command.getCommandParams().toArray();
         int index = 0;
         for (Parameter paramName : signature.getParameters()) {
-            if (!paramName.getName().equals(params[index])) {
+            if (!paramName.getName().equals(params[index].getParameterName())) {
                 return false;
             }
             index++;

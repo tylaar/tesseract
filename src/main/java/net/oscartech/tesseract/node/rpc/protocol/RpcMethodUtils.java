@@ -8,5 +8,5 @@ import java.lang.reflect.Method;
 public final class RpcMethodUtils {
     private RpcMethodUtils() {}
 
-    public final static Object invoke(Object service, Method method, List<> )
+
 }

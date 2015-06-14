@@ -10,7 +10,7 @@ public class TessyCommand {
     private String serviceName;
     private String commandName;
     private TessyFormat commandFormat;
-    private Map<String, String> commandParams;
+    private List<TessyCommandParam> commandParams;
 
     public String getServiceName() {
         return serviceName;
@@ -36,11 +36,11 @@ public class TessyCommand {
         this.commandFormat = commandFormat;
     }
 
-    public Map<String, String> getCommandParams() {
+    public List<TessyCommandParam> getCommandParams() {
         return commandParams;
     }
 
-    public void setCommandParams(final Map<String, String> commandParams) {
+    public void setCommandParams(final List<TessyCommandParam> commandParams) {
         this.commandParams = commandParams;
     }
 }

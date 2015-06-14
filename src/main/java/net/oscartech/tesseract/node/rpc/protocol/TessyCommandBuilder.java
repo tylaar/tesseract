@@ -1,7 +1,10 @@
 package net.oscartech.tesseract.node.rpc.protocol;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by tylaar on 15/6/13.
@@ -9,6 +12,7 @@ import java.util.Map;
 public class TessyCommandBuilder {
 
     private TessyCommand commandToBeRendered = new TessyCommand();
+    private AtomicInteger i = new AtomicInteger(0);
 
     public static TessyCommandBuilder newTessyCommand() {
         return new TessyCommandBuilder();
@@ -30,16 +34,24 @@ public class TessyCommandBuilder {
     }
 
     public TessyCommandBuilder addCommandParams(String paramName, String paramValue) {
-        Map<String, String> paramMap = commandToBeRendered.getCommandParams();
-        if (paramMap == null) {
-            paramMap = new HashMap<>();
-            this.commandToBeRendered.setCommandParams(paramMap);
+        List<TessyCommandParam> paramList = commandToBeRendered.getCommandParams();
+        if (paramList == null) {
+            paramList = new ArrayList<>();
+            this.commandToBeRendered.setCommandParams(paramList);
         }
-        if (paramMap.containsKey(paramName)) {
+        if (paramsContainKey(paramList, paramName)) {
             throw new TessyProtocolException(TessyProtocolException.PARAM_ALREADY_EXIST, "param: " + paramName + "already exist");
         }
-        paramMap.put(paramName, paramValue);
+        paramList.add(new TessyCommandParam(i.getAndIncrement(), paramName, paramValue));
         return this;
+    }
+
+    private boolean paramsContainKey(final List<TessyCommandParam> paramList, final String paramName) {
+        for (TessyCommandParam param : paramList) {
+            if (param.getParameterName().equals(paramName))
+                return true;
+        }
+        return false;
     }
 
     public TessyCommand build() {
