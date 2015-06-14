@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by tylaar on 15/4/26.
  */
-@RpcService(name = "nodeService")
 public class NodeService {
     private static final String ADDR_DELIMER = ":";
     private Node node;

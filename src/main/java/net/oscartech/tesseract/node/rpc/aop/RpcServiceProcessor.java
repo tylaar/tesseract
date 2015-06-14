@@ -1,7 +1,6 @@
 package net.oscartech.tesseract.node.rpc.aop;
 
-import freemarker.ext.beans.HashAdapter;
-import net.oscartech.tesseract.node.rpc.protocol.RpcMethodUtils;
+import com.google.inject.Guice;
 import net.oscartech.tesseract.node.rpc.protocol.TessyCommand;
 import net.oscartech.tesseract.node.rpc.protocol.TessyCommandParam;
 import net.oscartech.tesseract.node.rpc.protocol.TessyCommandParamType;
@@ -13,7 +12,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,10 +27,6 @@ public class RpcServiceProcessor{
     private static final int PARAMS_NUMBER_LIMITS = 10;
     private Map<String, Object> serviceMap = new ConcurrentHashMap<>();
     private Map<String, Map<String, MethodSig>> methodSigMap = new ConcurrentHashMap<>();
-
-    public RpcServiceProcessor() {
-        super();
-    }
 
     public void scanAnnotation(String classpath) {
         Reflections reflections = new Reflections(classpath);

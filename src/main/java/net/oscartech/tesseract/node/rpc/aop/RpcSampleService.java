@@ -1,5 +1,7 @@
 package net.oscartech.tesseract.node.rpc.aop;
 
+import org.springframework.context.annotation.Bean;
+
 /**
  * Created by tylaar on 15/6/14.
  */
