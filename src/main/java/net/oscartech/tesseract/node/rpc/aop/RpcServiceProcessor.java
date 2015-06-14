@@ -8,6 +8,7 @@ import net.oscartech.tesseract.node.rpc.protocol.TessyCommandParamType;
 import net.oscartech.tesseract.node.rpc.protocol.TessyProtocolException;
 import org.reflections.Reflections;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
@@ -54,6 +55,7 @@ public class RpcServiceProcessor{
                 for (Parameter p : parameters) {
                     sig.addMethodParam(p);
                 }
+                sig.setMethod(method);
                 sig.setMethodName(rpcMethod.name());
                 sig.setMethodResult(method.getReturnType());
                 methodSigs.add(sig);
@@ -108,15 +110,36 @@ public class RpcServiceProcessor{
     }
 
     public void callMethod(TessyCommand command) {
+
         MethodSig sig = validateRpcCall(command);
+
         Object service = serviceMap.get(command.getServiceName());
 
+        try {
+            sig.getMethod().invoke(service, extractArgObjects(command));
+        } catch (IllegalAccessException e) {
+            throw new TessyProtocolException(TessyProtocolException.PROTOCAL_INVOKING_FAILURE,
+                    "Access for the service failed with the param list.",
+                    e);
+        } catch (InvocationTargetException e) {
+            throw new TessyProtocolException(TessyProtocolException.PROTOCAL_INVOKING_FAILURE,
+                    "invocation for the service failed with the param list.",
+                    e);
+        }
         /**
          * TODO: use the signature and service endpoint to conduct the RPC call
          * TODO: this version I can only thinking about supporting basic type in Java language.
          * TODO: as the trait for the complex type will be very complicated for me to handle
          * TODO: within a single day.
          */
+    }
+
+    private Object[] extractArgObjects(final TessyCommand command) {
+        List<Object> args = new ArrayList<>();
+        for (TessyCommandParam param : command.getCommandParams()) {
+            args.add(param.getValue());
+        }
+        return args.toArray();
     }
 
     private boolean typeValidation(final MethodSig signature, final TessyCommand command) {
@@ -143,6 +166,7 @@ public class RpcServiceProcessor{
 
     class MethodSig {
         private String methodName;
+        private Method method;
         private List<Parameter> parameters;
         private Class<?> methodResult;
 
@@ -175,6 +199,14 @@ public class RpcServiceProcessor{
 
         public void setMethodResult(final Class<?> methodResult) {
             this.methodResult = methodResult;
+        }
+
+        public Method getMethod() {
+            return method;
+        }
+
+        public void setMethod(final Method method) {
+            this.method = method;
         }
     }
 }

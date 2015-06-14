@@ -10,7 +10,7 @@ public class TessyProtocolException extends RuntimeException {
     public static final int PARAM_TYPE_ERROR = 3;
     public static final int SERVICE_NAME_NOT_EXIST = 4;
     public static final int TOO_MANY_PARAMS = 5;
-    public static final int PARAM_NAME_MIS_MATCH = 6;
+    public static final int PROTOCAL_INVOKING_FAILURE = 6;
 
     private int code;
     private String description;
@@ -30,5 +30,11 @@ public class TessyProtocolException extends RuntimeException {
         super(message, cause);
         this.code = code;
         this.description = description;
+    }
+
+    public TessyProtocolException(final int code, final String s, final Throwable e) {
+        super(e);
+        this.code = code;
+        this.description = s;
     }
 }
