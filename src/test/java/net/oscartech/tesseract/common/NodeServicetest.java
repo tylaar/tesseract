@@ -35,11 +35,4 @@ public class NodeServiceTest {
         }
     }
 
-    @Test
-    public void testAnnotationRefine() throws IOException {
-        RpcServiceProcessor processor = new RpcServiceProcessor();
-        processor.scanAnnotation("net.yorkjr.jareau.blackjack");
-
-
-    }
 }
