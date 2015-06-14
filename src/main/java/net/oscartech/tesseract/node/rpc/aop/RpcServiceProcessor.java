@@ -4,6 +4,7 @@ import freemarker.ext.beans.HashAdapter;
 import net.oscartech.tesseract.node.rpc.protocol.RpcMethodUtils;
 import net.oscartech.tesseract.node.rpc.protocol.TessyCommand;
 import net.oscartech.tesseract.node.rpc.protocol.TessyCommandParam;
+import net.oscartech.tesseract.node.rpc.protocol.TessyCommandParamType;
 import net.oscartech.tesseract.node.rpc.protocol.TessyProtocolException;
 import org.reflections.Reflections;
 
@@ -85,20 +86,22 @@ public class RpcServiceProcessor{
         if (!typeValidation(signature, command)) {
             throw new TessyProtocolException(TessyProtocolException.PARAM_TYPE_ERROR, "type validation error");
         }
-        if (!nameValidation(signature, command)) {
-            throw new TessyProtocolException(TessyProtocolException.PARAM_NAME_MIS_MATCH, "param name validation error");
-        }
 
         return signature;
     }
 
+    /**
+     * DEPRECATED: we don't need a name checking. In any language API calling, name is only context variable for
+     * compiler, but no real world binding.
+     * @param signature
+     * @param command
+     * @return
+     */
+    @Deprecated
     private boolean nameValidation(final MethodSig signature, final TessyCommand command) {
         TessyCommandParam[] params = (TessyCommandParam[]) command.getCommandParams().toArray();
         int index = 0;
         for (Parameter paramName : signature.getParameters()) {
-            if (!paramName.getName().equals(params[index].getParameterName())) {
-                return false;
-            }
             index++;
         }
         return true;
@@ -110,11 +113,31 @@ public class RpcServiceProcessor{
 
         /**
          * TODO: use the signature and service endpoint to conduct the RPC call
+         * TODO: this version I can only thinking about supporting basic type in Java language.
+         * TODO: as the trait for the complex type will be very complicated for me to handle
+         * TODO: within a single day.
          */
     }
 
     private boolean typeValidation(final MethodSig signature, final TessyCommand command) {
-        return true;
+        TessyCommandParam[] params = (TessyCommandParam[]) command.getCommandParams().toArray();
+        int i = 0;
+        List<Parameter> paramsInSignature = signature.getParameters();
+
+        /**
+         * Travel comparing the type information for the method calling signature.
+         */
+        for (Parameter p : paramsInSignature) {
+            if (TessyCommandParamType.fromClazz(p.getType()).getCode()
+                    != params[i].getType()) {
+                return false;
+            }
+            i++;
+        }
+        /**
+         * If the type list is still not ending, it shall be false
+         */
+        return params.length == i;
     }
 
 

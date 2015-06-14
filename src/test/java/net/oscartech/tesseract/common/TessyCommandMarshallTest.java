@@ -16,8 +16,8 @@ public class TessyCommandMarshallTest {
         TessyCommandBuilder builder = new TessyCommandBuilder();
         builder.setCommandName("hello")
                 .setCommandFormat(TessyFormat.JSON)
-                .addCommandParams("one","one")
-                .addCommandParams("two","two");
+                .addCommandParams(1l)
+                .addCommandParams("two");
 
         TessyCommand command = builder.build();
         ObjectMapper mapper = new ObjectMapper();

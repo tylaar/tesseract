@@ -7,40 +7,40 @@ import java.util.Objects;
  */
 public class TessyCommandParam {
     private int index;
-    private String parameterName;
-    private String parameterValue;
+    private int type;
+    private Object value;
 
-    public TessyCommandParam(final int index, final String parameterName, final String parameterValue) {
+
+    public TessyCommandParam(final int index, final int type, final Object value) {
         this.index = index;
-        this.parameterName = parameterName;
-        this.parameterValue = parameterValue;
+        this.type = type;
+        this.value = value;
     }
 
     public int getIndex() {
         return index;
     }
 
-    public String getParameterName() {
-        return parameterName;
+    public int getType() {
+        return type;
     }
 
-
-    public String getParameterValue() {
-        return parameterValue;
+    public Object getValue() {
+        return value;
     }
 
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        final TessyCommandParam that = (TessyCommandParam) o;
-        return Objects.equals(index, that.index) &&
-                Objects.equals(parameterName, that.parameterName) &&
-                Objects.equals(parameterValue, that.parameterValue);
+        if (!(o instanceof TessyCommandParam)) return false;
+        final TessyCommandParam param = (TessyCommandParam) o;
+        return Objects.equals(getIndex(), param.getIndex()) &&
+                Objects.equals(getType(), param.getType()) &&
+                Objects.equals(getValue(), param.getValue());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(index, parameterName, parameterValue);
+        return Objects.hash(getIndex(), getType(), getValue());
     }
 }

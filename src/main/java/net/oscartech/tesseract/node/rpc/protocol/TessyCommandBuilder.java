@@ -33,26 +33,17 @@ public class TessyCommandBuilder {
         return this;
     }
 
-    public TessyCommandBuilder addCommandParams(String paramName, String paramValue) {
+    public TessyCommandBuilder addCommandParams(Object paramValue) {
         List<TessyCommandParam> paramList = commandToBeRendered.getCommandParams();
         if (paramList == null) {
             paramList = new ArrayList<>();
             this.commandToBeRendered.setCommandParams(paramList);
         }
-        if (paramsContainKey(paramList, paramName)) {
-            throw new TessyProtocolException(TessyProtocolException.PARAM_ALREADY_EXIST, "param: " + paramName + "already exist");
-        }
-        paramList.add(new TessyCommandParam(i.getAndIncrement(), paramName, paramValue));
+        int type = TessyCommandParamType.fromClazz(paramValue.getClass()).getCode();
+        paramList.add(new TessyCommandParam(i.getAndIncrement(), type, paramValue));
         return this;
     }
 
-    private boolean paramsContainKey(final List<TessyCommandParam> paramList, final String paramName) {
-        for (TessyCommandParam param : paramList) {
-            if (param.getParameterName().equals(paramName))
-                return true;
-        }
-        return false;
-    }
 
     public TessyCommand build() {
         TessyCommand result = commandToBeRendered;
