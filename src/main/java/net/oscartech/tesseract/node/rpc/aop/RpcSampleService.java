@@ -5,6 +5,10 @@ package net.oscartech.tesseract.node.rpc.aop;
  */
 @RpcService(name = "sampleService")
 public class RpcSampleService {
+
+    public RpcSampleService() {
+    }
+
     @RpcMethod(name = "command")
     public void calling(String one, String two) {
         System.out.println(one + " and " + two);

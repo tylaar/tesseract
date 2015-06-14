@@ -8,6 +8,7 @@ import net.oscartech.tesseract.node.rpc.protocol.TessyCommandParamType;
 import net.oscartech.tesseract.node.rpc.protocol.TessyProtocolException;
 import org.reflections.Reflections;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -27,7 +28,7 @@ public class RpcServiceProcessor{
     private static final String DEFAULT_END_POINT = "DEFAULT_END_POINT";
     private static final int PARAMS_NUMBER_LIMITS = 10;
     private Map<String, Object> serviceMap = new ConcurrentHashMap<>();
-    private Map<String, MethodSig> methodSigMap = new ConcurrentHashMap<>();
+    private Map<String, Map<String, MethodSig>> methodSigMap = new ConcurrentHashMap<>();
 
     public RpcServiceProcessor() {
         super();
@@ -38,13 +39,29 @@ public class RpcServiceProcessor{
         Set<Class<?>> result = reflections.getTypesAnnotatedWith(RpcService.class);
         for (Class<?> clazz : result) {
             RpcService serviceName = clazz.getAnnotation(RpcService.class);
-            serviceMap.put(serviceName.name(), clazz);
-            extractEachClazzAnnotation(clazz);
+            try {
+                serviceMap.put(serviceName.name(), createSingletonService(clazz));
+                methodSigMap.put(serviceName.name(), extractEachClazzAnnotation(clazz));
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
-    private List<MethodSig> extractEachClazzAnnotation(final Class<?> clazz) {
-        List<MethodSig> methodSigs = new ArrayList<>();
+    private Object createSingletonService(final Class<?> clazz) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Constructor<?> ctor = clazz.getConstructor(String.class);
+        return ctor.newInstance(new Object[] {});
+    }
+
+    private Map<String, MethodSig> extractEachClazzAnnotation(final Class<?> clazz) {
+        Map<String, MethodSig> methodSigs = new HashMap<>();
         for (Method method : clazz.getDeclaredMethods()) {
             System.out.println("method name: " + method.getName());
             RpcMethod rpcMethod = method.getAnnotation(RpcMethod.class);
@@ -58,7 +75,7 @@ public class RpcServiceProcessor{
                 sig.setMethod(method);
                 sig.setMethodName(rpcMethod.name());
                 sig.setMethodResult(method.getReturnType());
-                methodSigs.add(sig);
+                methodSigs.put(sig.getMethodName(), sig);
             }
         }
         return methodSigs;
@@ -70,15 +87,11 @@ public class RpcServiceProcessor{
             throw new TessyProtocolException(TessyProtocolException.SERVICE_NAME_NOT_EXIST, command.getServiceName() + ": unexisted service name");
         }
 
-        if (!methodSigMap.containsKey(command.getCommandName())) {
+        if (!methodSigMap.get(command.getServiceName()).containsKey(command.getCommandName())) {
             throw new TessyProtocolException(TessyProtocolException.PROTOCOL_NAME_NOT_EXIST, command.getCommandName() + ": unexisted call name");
         }
 
-        MethodSig signature = methodSigMap.get(command.getCommandName());
-
-        if (command.getCommandParams().size() > PARAMS_NUMBER_LIMITS) {
-            throw new TessyProtocolException(TessyProtocolException.TOO_MANY_PARAMS, "current tessy only support up to ");
-        }
+        MethodSig signature = methodSigMap.get(command.getServiceName()).get(command.getCommandName());
 
         if (signature.getParameters().size() != command.getCommandParams().size()) {
             throw new TessyProtocolException(TessyProtocolException.PARAM_NUM_MIS_MATCH,
@@ -143,7 +156,8 @@ public class RpcServiceProcessor{
     }
 
     private boolean typeValidation(final MethodSig signature, final TessyCommand command) {
-        TessyCommandParam[] params = (TessyCommandParam[]) command.getCommandParams().toArray();
+        List<TessyCommandParam> paramList = command.getCommandParams();
+        TessyCommandParam[] params = extractCommandParamsFromList(paramList);
         int i = 0;
         List<Parameter> paramsInSignature = signature.getParameters();
 
@@ -161,6 +175,16 @@ public class RpcServiceProcessor{
          * If the type list is still not ending, it shall be false
          */
         return params.length == i;
+    }
+
+    private TessyCommandParam[] extractCommandParamsFromList(final List<TessyCommandParam> paramList) {
+        TessyCommandParam[] params = new TessyCommandParam[paramList.size()];
+        int i = 0;
+        for (TessyCommandParam param : paramList) {
+            params[i] = param;
+            i++;
+        }
+        return params;
     }
 
 

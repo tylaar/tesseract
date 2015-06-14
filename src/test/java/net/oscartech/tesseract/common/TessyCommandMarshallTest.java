@@ -34,4 +34,19 @@ public class TessyCommandMarshallTest {
         RpcServiceProcessor processor = new RpcServiceProcessor();
         processor.scanAnnotation("net.oscartech.tesseract");
     }
+
+    @Test
+    public void testCalling() {
+        RpcServiceProcessor processor = new RpcServiceProcessor();
+        processor.scanAnnotation("net.oscartech.tesseract");
+        TessyCommandBuilder builder = new TessyCommandBuilder();
+        builder.setServiceName("sampleService").
+                setCommandName("command")
+                .setCommandFormat(TessyFormat.JSON)
+                .addCommandParams("one")
+                .addCommandParams("two");
+
+        TessyCommand command = builder.build();
+        processor.callMethod(command);
+    }
 }
