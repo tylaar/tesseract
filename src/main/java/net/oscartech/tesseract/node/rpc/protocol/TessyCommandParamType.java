@@ -1,7 +1,5 @@
 package net.oscartech.tesseract.node.rpc.protocol;
 
-import freemarker.ext.beans.HashAdapter;
-
 import java.util.HashMap;
 import java.util.Map;
 
