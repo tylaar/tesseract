@@ -1,13 +1,14 @@
 package net.oscartech.tesseract.node.rpc.aop;
 
-import com.google.inject.Guice;
 import net.oscartech.tesseract.node.rpc.protocol.TessyCommand;
 import net.oscartech.tesseract.node.rpc.protocol.TessyCommandParam;
 import net.oscartech.tesseract.node.rpc.protocol.TessyCommandParamType;
 import net.oscartech.tesseract.node.rpc.protocol.TessyProtocolException;
 import org.reflections.Reflections;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -21,12 +22,14 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by tylaar on 15/5/2.
  */
-public class RpcServiceProcessor{
+public class RpcServiceProcessor implements ApplicationContextAware {
 
     private static final String DEFAULT_END_POINT = "DEFAULT_END_POINT";
     private static final int PARAMS_NUMBER_LIMITS = 10;
     private Map<String, Object> serviceMap = new ConcurrentHashMap<>();
     private Map<String, Map<String, MethodSig>> methodSigMap = new ConcurrentHashMap<>();
+
+    private ApplicationContext context;
 
     public void scanAnnotation(String classpath) {
         Reflections reflections = new Reflections(classpath);
@@ -50,8 +53,19 @@ public class RpcServiceProcessor{
     }
 
     private Object createSingletonService(final Class<?> clazz) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        Constructor<?> ctor = clazz.getConstructor(String.class);
-        return ctor.newInstance(new Object[] {});
+        String[] beanNames = context.getBeanNamesForType(clazz);
+        for (String name : beanNames) {
+            System.out.println(name);
+        }
+
+        /**
+         * TODO: Here Automatically choose the first one. This shall be overrided by rules.
+         */
+        if (beanNames.length == 0) {
+            return null;
+        }
+        return context.getBean(beanNames[0]);
+
     }
 
     private Map<String, MethodSig> extractEachClazzAnnotation(final Class<?> clazz) {
@@ -179,6 +193,11 @@ public class RpcServiceProcessor{
             i++;
         }
         return params;
+    }
+
+    @Override
+    public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
+        this.context = applicationContext;
     }
 
 
