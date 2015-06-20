@@ -33,6 +33,13 @@
             <type>jar</type>
         </dependency>
 
+        <dependency> <!-- spring 3.2 -->
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>${spring.version}</version>
+            <type>jar</type>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-aop</artifactId>
