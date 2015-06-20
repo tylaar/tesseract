@@ -11,6 +11,6 @@ public interface RpcService <I, O>{
 
     String getDescriptor();
 
-    long getResponceId();
+    long getResponseId();
 
 }

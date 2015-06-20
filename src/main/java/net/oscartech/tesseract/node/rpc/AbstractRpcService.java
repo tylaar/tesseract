@@ -11,7 +11,7 @@ public abstract class AbstractRpcService implements RpcService {
     }
 
     @Override
-    public long getResponceId() {
+    public long getResponseId() {
         return 0;
     }
 }
