@@ -1,5 +1,6 @@
 package net.oscartech.tesseract.node.rpc.aop;
 
+import net.oscartech.tesseract.node.exception.RpcException;
 import net.oscartech.tesseract.node.rpc.protocol.TessyCommand;
 import net.oscartech.tesseract.node.rpc.protocol.TessyCommandParam;
 import net.oscartech.tesseract.node.rpc.protocol.TessyCommandParamType;
@@ -24,8 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class RpcServiceProcessor implements ApplicationContextAware {
 
-    private static final String DEFAULT_END_POINT = "DEFAULT_END_POINT";
-    private static final int PARAMS_NUMBER_LIMITS = 10;
     private Map<String, Object> serviceMap = new ConcurrentHashMap<>();
     private Map<String, Map<String, MethodSig>> methodSigMap = new ConcurrentHashMap<>();
 
@@ -39,14 +38,8 @@ public class RpcServiceProcessor implements ApplicationContextAware {
             try {
                 serviceMap.put(serviceName.name(), createSingletonService(clazz));
                 methodSigMap.put(serviceName.name(), extractEachClazzAnnotation(clazz));
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+                throw new RpcException("scanning annotation exception detected.", e);
             }
 
         }

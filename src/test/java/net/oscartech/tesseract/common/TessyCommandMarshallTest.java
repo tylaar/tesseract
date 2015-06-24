@@ -21,8 +21,6 @@ import java.io.IOException;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "file:src/main/META-INF/spring/unittest/application.xml")
 public class TessyCommandMarshallTest {
-    @Autowired
-    private RpcSampleService sampleService;
 
     @Autowired
     private RpcServiceProcessor processor;
@@ -44,7 +42,6 @@ public class TessyCommandMarshallTest {
 
     @Test
     public void testAnnotationRefine() throws IOException {
-        //RpcServiceProcessor processor = new RpcServiceProcessor();
         processor.scanAnnotation("net.oscartech.tesseract");
     }
 
