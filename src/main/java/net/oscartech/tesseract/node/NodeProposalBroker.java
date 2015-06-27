@@ -17,6 +17,9 @@ import java.util.concurrent.Executors;
 
 /**
  * A broker shall be responsible for tmux proposal.
+ * TODO: I've been thinking, if I am over complicated the problem.
+ * TODO: the most common scenario shall be, propose, reply, propose again, reply again.
+ * TODO: otherwise, like this first edition, it's more session-like.
  * Created by tylaar on 15/4/29.
  */
 public class NodeProposalBroker {
