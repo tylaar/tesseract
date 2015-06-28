@@ -2,6 +2,7 @@ package net.oscartech.tesseract.node.util;
 
 import net.oscartech.tesseract.node.pojo.NodeProposal;
 import net.oscartech.tesseract.node.rpc.RpcRequest;
+import net.oscartech.tesseract.node.rpc.protocol.TessyCommand;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
@@ -21,6 +22,12 @@ public final class MarshallUtils {
         ObjectMapper mapper = new ObjectMapper();
         RpcRequest request = mapper.readValue(target, RpcRequest.class);
         return request;
+    }
+
+    public static TessyCommand fromStringToTessyCommand(String target) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        TessyCommand command = mapper.readValue(target, TessyCommand.class);
+        return command;
     }
 
     public static String serializeToString(NodeProposal proposal) throws IOException {
