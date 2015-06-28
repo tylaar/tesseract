@@ -10,6 +10,8 @@ public class TessyCommandParam {
     private int type;
     private Object value;
 
+    public TessyCommandParam() {
+    }
 
     public TessyCommandParam(final int index, final int type, final Object value) {
         this.index = index;
@@ -27,6 +29,18 @@ public class TessyCommandParam {
 
     public Object getValue() {
         return value;
+    }
+
+    public void setIndex(final int index) {
+        this.index = index;
+    }
+
+    public void setType(final int type) {
+        this.type = type;
+    }
+
+    public void setValue(final Object value) {
+        this.value = value;
     }
 
     @Override

@@ -3,6 +3,7 @@ package net.oscartech.tesseract.common;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
@@ -28,10 +29,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
-import java.nio.channels.Channel;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by tylaar on 15/6/13.
@@ -83,7 +80,7 @@ public class TessyCommandMarshallTest {
 
     @Test
     public void testRealCalling() throws InterruptedException {
-
+        processor.scanAnnotation("net.oscartech.tesseract");
         NodeBroker broker = new NodeBroker(NodeServiceFactory.generateLocalNodeAddress(), processor);
         broker.init();
 
@@ -102,9 +99,10 @@ public class TessyCommandMarshallTest {
                 });
 
         ChannelFuture f;
+        Channel channel;
         try {
             f = b.connect().sync();
-
+            channel = f.channel();
             /**
              * Before the node clients are all connected, the proposal shall not happen.
              */
@@ -113,19 +111,21 @@ public class TessyCommandMarshallTest {
                 @Override
                 public void operationComplete(final ChannelFuture future) throws Exception {
                     System.out.println("connected");
-                    io.netty.channel.Channel channel = future.channel();
-                    if (!channel.isWritable()) {
-                        System.out.println("unwritable!!");
-                    }
-
-                    channel.writeAndFlush(MarshallUtils.fromTessyCommandToString(getCommand()));
                 }
             });
 
             f.channel().closeFuture();
-        } catch (InterruptedException e) {
+
+            if (!channel.isWritable()) {
+                System.out.println("unwritable!!");
+            }
+
+            channel.writeAndFlush(MarshallUtils.fromTessyCommandToString(getCommand()));
+
+        } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
+
 
         Thread.sleep(2000);
         while(true) {
