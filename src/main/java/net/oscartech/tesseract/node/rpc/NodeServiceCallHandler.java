@@ -24,7 +24,7 @@ public class NodeServiceCallHandler extends ChannelInboundHandlerAdapter {
     private AtomicInteger counter = new AtomicInteger(0);
 
     public NodeServiceCallHandler(final RpcServiceProcessor processor) {
-        this.serviceProcessor = serviceProcessor;
+        this.serviceProcessor = processor;
     }
 
     @Override
@@ -45,7 +45,6 @@ public class NodeServiceCallHandler extends ChannelInboundHandlerAdapter {
         try {
             counter.getAndIncrement();
             TessyCommand command = MarshallUtils.fromStringToTessyCommand(in.toString(CharsetUtil.UTF_8));
-            //System.out.println("server read hit" + proposal.getProposalId() + " and type: " + proposal.getType());
             /**
              * One thing that we shall always bear in mind is that, proposal broker
              * theoretically shall be state less. The code is shared by different
@@ -56,10 +55,6 @@ public class NodeServiceCallHandler extends ChannelInboundHandlerAdapter {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public int getCounter() {
-        return counter.get();
     }
 
 }

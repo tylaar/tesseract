@@ -1,6 +1,5 @@
 package net.oscartech.tesseract.node.rpc;
 
-import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -10,14 +9,10 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.string.StringEncoder;
-import net.oscartech.tesseract.node.Node;
 import net.oscartech.tesseract.node.NodeAddress;
 import net.oscartech.tesseract.node.rpc.aop.RpcServiceProcessor;
 import net.oscartech.tesseract.node.util.JsonObjectDecoder;
-import net.oscartech.tesseract.node.util.SequenceGenerator;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -27,38 +22,18 @@ import java.util.concurrent.TimeUnit;
  */
 public class NodeBroker {
 
-    private static final String ADDR_DELIMER = ":";
     private ThreadPoolExecutor serverExecutor;
     private ServerBootstrap serverBootstrap;
     private NodeAddress nodeAddress;
     private RpcServiceProcessor serviceProcessor;
 
-    public NodeBroker(final String address,
-                      final int port,
-                      final NodeAddress nodeAddress,
+    public NodeBroker(final NodeAddress nodeAddress,
                       final RpcServiceProcessor serviceProcessor) {
         this.nodeAddress = nodeAddress;
 
         this.serverBootstrap = getServerBootStrap();
         this.serviceProcessor = serviceProcessor;
     }
-
-    public NodeBroker(final int port,
-                      final NodeAddress nodeAddress) {
-        this.nodeAddress = nodeAddress;
-        this.serverBootstrap = getServerBootStrap();
-    }
-
-
-    private List<NodeAddress> parseFromConfig(final List<String> networkTopology) {
-        List<NodeAddress> resultSet = new ArrayList<>();
-        for (String addr : networkTopology) {
-            String[] pair = addr.split(ADDR_DELIMER);
-            resultSet.add(new NodeAddress(pair[0], Integer.valueOf(pair[1])));
-        }
-        return resultSet;
-    }
-
 
     private ServerBootstrap getServerBootStrap() {
         EventLoopGroup bossGroup = new NioEventLoopGroup();
@@ -88,6 +63,7 @@ public class NodeBroker {
                 f.channel().closeFuture();
             }
         });
+        System.out.println("initialized.");
     }
 
 }

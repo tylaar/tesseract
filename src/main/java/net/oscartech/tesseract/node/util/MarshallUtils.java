@@ -30,6 +30,11 @@ public final class MarshallUtils {
         return command;
     }
 
+    public static String fromTessyCommandToString(TessyCommand command) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(mapper);
+    }
+
     public static String serializeToString(NodeProposal proposal) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(proposal);

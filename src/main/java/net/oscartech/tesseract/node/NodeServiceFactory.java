@@ -41,6 +41,11 @@ public class NodeServiceFactory {
         return serviceList;
     }
 
+    public static NodeAddress generateLocalNodeAddress() {
+        NodeAddress nodeAddress = new NodeAddress("127.0.0.1", 50004);
+        return nodeAddress;
+    }
+
     public static SequenceGenerator getSequenceGenerator() {
         return sequenceGenerator;
     }

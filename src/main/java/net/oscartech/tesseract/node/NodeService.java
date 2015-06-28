@@ -85,8 +85,6 @@ public class NodeService {
                     public void initChannel(SocketChannel ch) throws Exception {
 
                         ch.pipeline().addLast(new NodeServerHandler(proposalBroker));
-                        //ch.pipeline().addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
-
                         ch.pipeline().addLast(new JsonObjectDecoder());
                         ch.pipeline().addLast(new StringEncoder());
                     }
