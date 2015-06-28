@@ -2,6 +2,7 @@ package net.oscartech.tesseract.node.rpc;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -17,40 +18,33 @@ import net.oscartech.tesseract.node.util.SequenceGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by tylaar on 15/6/28.
  */
 public class NodeBroker {
+
     private static final String ADDR_DELIMER = ":";
-    private Node node;
-    private boolean isMaster = false;
     private ThreadPoolExecutor serverExecutor;
-    private ThreadPoolExecutor clientExecutor;
     private ServerBootstrap serverBootstrap;
-    private List<Bootstrap> clientBootstrap;
     private NodeAddress nodeAddress;
     private RpcServiceProcessor serviceProcessor;
 
     public NodeBroker(final String address,
                       final int port,
                       final NodeAddress nodeAddress,
-                      final SequenceGenerator sequenceGenerator,
                       final RpcServiceProcessor serviceProcessor) {
-        this.node = new Node();
         this.nodeAddress = nodeAddress;
-        this.node.setCurrentAcceptId("0", sequenceGenerator.generateSequence());
 
         this.serverBootstrap = getServerBootStrap();
         this.serviceProcessor = serviceProcessor;
     }
 
     public NodeBroker(final int port,
-                      final NodeAddress nodeAddress,
-                      final SequenceGenerator sequenceGenerator) {
-        this.node = new Node();
-        this.node.setCurrentAcceptId("0", sequenceGenerator.generateSequence());
+                      final NodeAddress nodeAddress) {
         this.nodeAddress = nodeAddress;
         this.serverBootstrap = getServerBootStrap();
     }
@@ -83,6 +77,17 @@ public class NodeBroker {
                 .childOption(ChannelOption.SO_KEEPALIVE, true); // (6)
 
         return b;
+    }
+
+    public void init() {
+        serverExecutor = new ThreadPoolExecutor(4, 8, 10, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(10));
+        serverExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                ChannelFuture f = serverBootstrap.bind(nodeAddress.toInetSocketAddress()); // (7)
+                f.channel().closeFuture();
+            }
+        });
     }
 
 }
